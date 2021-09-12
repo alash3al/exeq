@@ -8,26 +8,18 @@ import (
 	"time"
 
 	"github.com/adjust/rmq/v4"
-	"github.com/alash3al/exeq/config"
+	"github.com/alash3al/exeq/internals/config"
 	"github.com/go-redis/redis/v8"
 	"github.com/rs/xid"
 )
 
-const (
-	QueueNamePending    = "exeq.pending"
-	QueueNameRunning    = "exeq.running"
-	QueueNameFailed     = "exeq.failed"
-	QueueNameKilled     = "exeq.killed"
-	QueueNameSucceeded  = "exeq.succeeded"
-	QueueNameToBeKilled = "exeq.tbk"
-)
-
 type Queue struct {
-	redisConn   *redis.Client
-	rmqConn     rmq.Connection
-	masterQueue rmq.Queue
-	configs     *config.Config
-	pushQueues  []rmq.Queue
+	redisConn      *redis.Client
+	rmqConn        rmq.Connection
+	masterQueue    rmq.Queue
+	configs        *config.Config
+	pushQueues     []rmq.Queue
+	allQueuesNames []string
 }
 
 func New(configs *config.Config) (*Queue, error) {
@@ -49,10 +41,13 @@ func New(configs *config.Config) (*Queue, error) {
 		return nil, err
 	}
 
-	masterQueue, err := rmqConn.OpenQueue("exeq.master")
+	masterQueueName := "exeq.master"
+	masterQueue, err := rmqConn.OpenQueue(masterQueueName)
 	if err != nil {
 		return nil, err
 	}
+
+	allQueuesNames := []string{masterQueueName}
 
 	masterQueueCleaner := rmq.NewCleaner(rmqConn)
 
@@ -67,11 +62,13 @@ func New(configs *config.Config) (*Queue, error) {
 	pushQueues := []rmq.Queue{}
 
 	for i := 0; i < configs.Queue.RetryAttempts; i++ {
-		pushQueue, err := rmqConn.OpenQueue(fmt.Sprintf("exeq.push.%d", i))
+		pushQueueName := fmt.Sprintf("exeq.push.%d", i)
+		pushQueue, err := rmqConn.OpenQueue(pushQueueName)
 		if err != nil {
 			return nil, err
 		}
 
+		allQueuesNames = append(allQueuesNames, pushQueueName)
 		pushQueues = append(pushQueues, pushQueue)
 
 		if i < 1 {
@@ -82,22 +79,17 @@ func New(configs *config.Config) (*Queue, error) {
 	}
 
 	return &Queue{
-		redisConn:   redisConn,
-		rmqConn:     rmqConn,
-		masterQueue: masterQueue,
-		pushQueues:  pushQueues,
-		configs:     configs,
+		redisConn:      redisConn,
+		rmqConn:        rmqConn,
+		masterQueue:    masterQueue,
+		pushQueues:     pushQueues,
+		configs:        configs,
+		allQueuesNames: allQueuesNames,
 	}, nil
 }
 
 func (q *Queue) Enqueue(j *Job) (string, error) {
 	j.ID = xid.New().String()
-
-	if j.Env == nil {
-		j.Env = map[string]string{}
-	}
-
-	j.Env["EXEQ_JOB_ID"] = j.ID
 
 	if err := q.masterQueue.Publish(j.String()); err != nil {
 		return "", err

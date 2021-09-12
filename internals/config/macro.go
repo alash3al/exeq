@@ -1,6 +1,7 @@
 package config
 
 import (
+	"bytes"
 	"fmt"
 	"io/fs"
 	"io/ioutil"
@@ -8,26 +9,10 @@ import (
 	"os/exec"
 	"path/filepath"
 	"strings"
+	"text/template"
 
-	"github.com/hashicorp/hcl/v2/hclsimple"
+	"github.com/alash3al/exeq/pkg/utils"
 )
-
-type Config struct {
-	Queue      QueueConfig      `hcl:"queue,block"`
-	HTTPServer HTTPServerConfig `hcl:"http_server,block"`
-	// Macros     []MacroConfig    `hcl:"macro,block"`
-}
-
-type QueueConfig struct {
-	DSN           string `hcl:"dsn"`
-	WorkersCount  int    `hcl:"workers_count"`
-	PollDuration  string `hcl:"poll_duration"`
-	RetryAttempts int    `hcl:"retry_attempts"`
-}
-
-type HTTPServerConfig struct {
-	ListenAddr string `hcl:"listen"`
-}
 
 type MacroConfig struct {
 	Name    string `hcl:"name,label"`
@@ -38,11 +23,24 @@ type MacroConfig struct {
 	} `hcl:"mount,block"`
 }
 
-func (macro *MacroConfig) ValidateCommand() error {
-	cmdParts := strings.Split(strings.TrimSpace(macro.Command), " ")
+func (macro *MacroConfig) split() []string {
+	return utils.SplitSpaceDelimitedString(strings.TrimSpace(macro.Command))
+}
+
+func (macro *MacroConfig) ParseAndSplit(ctx map[string]string) ([]string, error) {
+	command, err := macro.parseCommand(ctx)
+	if err != nil {
+		return nil, err
+	}
+
+	return utils.SplitSpaceDelimitedString(strings.TrimSpace(command)), nil
+}
+
+func (macro *MacroConfig) validateCommand() error {
+	cmdParts := macro.split()
 
 	if len(cmdParts) < 1 {
-		return fmt.Errorf("there is no command for the macro (%s)", macro.Name)
+		return fmt.Errorf("there is no command (or command is empty) for the macro (%s)", macro.Name)
 	}
 
 	if _, err := exec.LookPath(cmdParts[0]); err != nil {
@@ -52,7 +50,7 @@ func (macro *MacroConfig) ValidateCommand() error {
 	return nil
 }
 
-func (macro *MacroConfig) CreateMounts() (err error) {
+func (macro *MacroConfig) setupMounts() (err error) {
 	if len(macro.Mounts) < 1 {
 		return
 	}
@@ -89,19 +87,19 @@ func (macro *MacroConfig) CreateMounts() (err error) {
 	return
 }
 
-func LoadFromFile(filename string) (config Config, err error) {
-	err = hclsimple.DecodeFile(filename, nil, &config)
+func (macro *MacroConfig) parseCommand(ctx map[string]string) (string, error) {
+	var out bytes.Buffer
 
+	tpl, err := template.New(macro.Name).Parse(macro.Command)
 	if err != nil {
-		return
+		return "", err
 	}
 
-	// TODO enable this code block after implementing config macros (commands aliases)
-	// for _, macro := range config.Macros {
-	// 	if err := macro.CreateMounts(); err != nil {
-	// 		return config, err
-	// 	}
-	// }
+	if err := tpl.Execute(&out, struct {
+		Args map[string]string
+	}{ctx}); err != nil {
+		return "", err
+	}
 
-	return
+	return out.String(), nil
 }
