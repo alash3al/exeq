@@ -7,6 +7,7 @@ import (
 )
 
 type Config struct {
+	LogLevel   string            `hcl:"log_level"`
 	Queue      *QueueConfig      `hcl:"queue,block"`
 	HTTPServer *HTTPServerConfig `hcl:"http_server,block"`
 	Macros     []*MacroConfig    `hcl:"macro,block"`

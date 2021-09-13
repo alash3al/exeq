@@ -10,6 +10,7 @@ func SplitSpaceDelimitedString(s string) []string {
 	reader.Comma = ' '
 	reader.ReuseRecord = true
 	reader.TrimLeadingSpace = true
+	reader.LazyQuotes = true
 
 	all, _ := reader.ReadAll()
 	parts := []string{}

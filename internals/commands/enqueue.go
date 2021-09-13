@@ -6,16 +6,19 @@ import (
 
 	"github.com/alash3al/exeq/internals/config"
 	"github.com/alash3al/exeq/internals/queue"
+	"github.com/kataras/golog"
+	"github.com/rs/xid"
 	"github.com/urfave/cli/v2"
 )
 
-func EnqueueCMD(q *queue.Queue) *cli.Command {
+func EnqueueCMD(q queue.Driver) *cli.Command {
 	return &cli.Command{
 		Name:            "enqueue:cmd",
 		Description:     "submit a raw shell command to the queue",
 		SkipFlagParsing: true,
 		Action: func(ctx *cli.Context) error {
-			_, err := q.Enqueue(&queue.Job{
+			err := q.Enqueue(&queue.Job{
+				ID:  xid.New().String(),
 				Cmd: ctx.Args().Slice(),
 			})
 
@@ -24,7 +27,7 @@ func EnqueueCMD(q *queue.Queue) *cli.Command {
 	}
 }
 
-func EnqueueMacro(cfg *config.Config, q *queue.Queue) *cli.Command {
+func EnqueueMacro(cfg *config.Config, q queue.Driver) *cli.Command {
 	return &cli.Command{
 		Name:        "enqueue:macro",
 		Description: "submit a raw shell command to the queue",
@@ -53,8 +56,7 @@ func EnqueueMacro(cfg *config.Config, q *queue.Queue) *cli.Command {
 				parts := strings.SplitN(arg, "=", 2)
 
 				if len(parts) < 2 {
-					// TODO fail here and return an error if we want to be strict
-					continue
+					return fmt.Errorf("the argument (%s) you supplied is invalid, it should be in the form of SOME_KEY=SOME_VALUE", arg)
 				}
 
 				argsMap[parts[0]] = parts[1]
@@ -65,9 +67,15 @@ func EnqueueMacro(cfg *config.Config, q *queue.Queue) *cli.Command {
 				return err
 			}
 
-			fmt.Printf("macro (%s) is expanded to be (%s)\n", macro.Name, strings.Join(cmd, " "))
+			golog.Info(
+				fmt.Sprintf(
+					"macro (%s) is expanded to be (%s)\n",
+					macro.Name,
+					strings.Join(cmd, " "),
+				),
+			)
 
-			_, err = q.Enqueue(&queue.Job{
+			err = q.Enqueue(&queue.Job{
 				Cmd: cmd,
 			})
 

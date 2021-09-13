@@ -1,9 +1,13 @@
+log_level = "debug"
+
 http_server {
     listen = ":1215"
 }
 
 queue {
-    dsn = "redis://localhost:6379/1"
+    driver = "redis"
+
+    connection = "redis://localhost:6379/1"
 
     workers_count = 5
 

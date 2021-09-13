@@ -6,7 +6,7 @@ import (
 	"github.com/urfave/cli/v2"
 )
 
-func QueueWork(cfg *config.Config, q *queue.Queue) *cli.Command {
+func QueueWork(cfg *config.Config, q queue.Driver) *cli.Command {
 	return &cli.Command{
 		Name:        "queue:work",
 		Description: "start the queue worker(s)",

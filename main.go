@@ -1,19 +1,19 @@
 package main
 
 import (
-	"log"
 	"os"
 
 	"github.com/alash3al/exeq/internals/commands"
 	"github.com/alash3al/exeq/internals/config"
 	"github.com/alash3al/exeq/internals/queue"
 	"github.com/alash3al/exeq/pkg/utils"
+	"github.com/kataras/golog"
 	"github.com/urfave/cli/v2"
 )
 
 var (
 	cfg       config.Config
-	queueMngr *queue.Queue
+	queueConn queue.Driver
 )
 
 const (
@@ -25,29 +25,31 @@ func init() {
 
 	cfg, err = config.BootFromFile(utils.Getenv(configFileEnvName, "./exeq.hcl"))
 	if err != nil {
-		log.Fatal(err)
+		golog.Fatal(err)
 	}
 
-	queueMngr, err = queue.New(&cfg)
+	queueConn, err = queue.Open(cfg.Queue.Driver, cfg.Queue)
 	if err != nil {
-		log.Fatal(err)
+		golog.Fatal(err)
 	}
 }
 
 func main() {
+	golog.SetLevel(cfg.LogLevel)
+
 	app := &cli.App{
 		Name:        "exeq",
 		Version:     "1.0.0",
 		Description: "exeq enables you to execute shell commands in a managed scalable queue",
 
 		Commands: []*cli.Command{
-			commands.QueueWork(&cfg, queueMngr),
-			commands.EnqueueMacro(&cfg, queueMngr),
-			commands.EnqueueCMD(queueMngr),
+			commands.QueueWork(&cfg, queueConn),
+			commands.EnqueueMacro(&cfg, queueConn),
+			commands.EnqueueCMD(queueConn),
 		},
 	}
 
 	if err := app.Run(os.Args); err != nil {
-		log.Fatal(err)
+		golog.Fatal(err)
 	}
 }

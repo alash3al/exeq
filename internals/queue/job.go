@@ -5,9 +5,25 @@ import (
 	"os/exec"
 )
 
+type JobStats struct {
+	JobID     string
+	ProcessID int64
+	Status    JobStatus
+}
+
+type JobStatus string
+
+const (
+	JobStatusPending   JobStatus = "pending"
+	JobStatusRunning   JobStatus = "running"
+	JobStatusFailed    JobStatus = "failed"
+	JobStatusSucceeded JobStatus = "succeeded"
+)
+
 type Job struct {
-	ID  string   `json:"id"`
-	Cmd []string `json:"cmd"`
+	ID    string   `json:"id"`
+	Cmd   []string `json:"cmd"`
+	Stats JobStats `json:"stats"`
 }
 
 func (j Job) String() string {
