@@ -11,6 +11,7 @@ type Driver interface {
 	Open(*config.QueueConfig) (Driver, error)
 	Enqueue(*Job) error
 	Stats() ([]JobStats, error)
+	Err() <-chan error
 	ListenAndConsume() error
 }
 

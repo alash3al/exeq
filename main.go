@@ -34,6 +34,12 @@ func init() {
 	if err != nil {
 		golog.Fatal(err)
 	}
+
+	go (func() {
+		for err := range queueConn.Err() {
+			golog.Error(err)
+		}
+	})()
 }
 
 func main() {

@@ -83,6 +83,10 @@ func (r *Redis) Stats() ([]queue.JobStats, error) {
 	return nil, nil
 }
 
+func (r *Redis) Err() <-chan error {
+	return r.errChan
+}
+
 func (r *Redis) ListenAndConsume() error {
 	dur, err := time.ParseDuration(r.cfg.PollDuration)
 	if err != nil {
@@ -109,7 +113,12 @@ func (r *Redis) ListenAndConsume() error {
 
 			if err := j.Run(); err != nil {
 				r.errChan <- err
-				if err := d.Push(); err != nil {
+				reject := d.Reject
+				if err == context.DeadlineExceeded {
+					reject = d.Push
+				}
+
+				if err := reject(); err != nil {
 					r.errChan <- err
 				}
 
