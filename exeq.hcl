@@ -5,9 +5,9 @@ http_server {
 }
 
 queue {
-    driver = "redis"
+    driver = "rmq"
 
-    connection = "redis://localhost:6379/1"
+    dsn = "redis://localhost:6379/1"
 
     workers_count = 5
 

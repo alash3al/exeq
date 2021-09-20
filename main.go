@@ -9,6 +9,8 @@ import (
 	"github.com/alash3al/exeq/pkg/utils"
 	"github.com/kataras/golog"
 	"github.com/urfave/cli/v2"
+
+	_ "github.com/alash3al/exeq/internals/queue/drivers/rmq"
 )
 
 var (
