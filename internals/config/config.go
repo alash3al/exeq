@@ -2,6 +2,8 @@ package config
 
 import (
 	"fmt"
+	"io/ioutil"
+	"os"
 
 	"github.com/hashicorp/hcl/v2/hclsimple"
 )
@@ -15,18 +17,25 @@ type Config struct {
 	macrosMap map[string]*MacroConfig
 }
 
-func BootFromFile(filename string) (config Config, err error) {
-	err = hclsimple.DecodeFile(filename, nil, &config)
+func BootFromFile(filename string) (*Config, error) {
+	var config Config
 
+	fileContent, err := ioutil.ReadFile(filename)
 	if err != nil {
-		return
+		return nil, err
+	}
+
+	fileContent = []byte(os.ExpandEnv(string(fileContent)))
+
+	if err := hclsimple.Decode(filename, fileContent, nil, &config); err != nil {
+		return nil, err
 	}
 
 	config.macrosMap = map[string]*MacroConfig{}
 
 	err = config.validateCommands()
 
-	return
+	return &config, err
 }
 
 func (config *Config) LookupMacro(name string) (m *MacroConfig, ok bool) {

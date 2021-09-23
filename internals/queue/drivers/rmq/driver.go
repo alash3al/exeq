@@ -79,10 +79,6 @@ func (r *Redis) Enqueue(j *queue.Job) error {
 	return r.queues[0].Publish(j.String())
 }
 
-func (r *Redis) Stats() ([]queue.JobStats, error) {
-	return nil, nil
-}
-
 func (r *Redis) Err() <-chan error {
 	return r.errChan
 }

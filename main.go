@@ -14,7 +14,7 @@ import (
 )
 
 var (
-	cfg       config.Config
+	cfg       *config.Config
 	queueConn queue.Driver
 )
 
@@ -51,8 +51,8 @@ func main() {
 		Description: "exeq enables you to execute shell commands in a managed scalable queue",
 
 		Commands: []*cli.Command{
-			commands.QueueWork(&cfg, queueConn),
-			commands.EnqueueMacro(&cfg, queueConn),
+			commands.QueueWork(cfg, queueConn),
+			commands.EnqueueMacro(cfg, queueConn),
 			commands.EnqueueCMD(queueConn),
 		},
 	}
