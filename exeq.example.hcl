@@ -31,7 +31,7 @@ queue {
 macro "crawl" {
     command = "scrapy crawl {{.Args.spider}} {{range $k, $v := .Args}} -a {{$k}}={{$v}} {{end}}"
     max_execution_time = ""
-    mount "file.php" {
-        content = ""
+    mount "settings.py" {
+        content = "SETTINGS CONTENT HERE"
     }
 }
