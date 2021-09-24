@@ -16,7 +16,7 @@ Features
 Components
 ==========
 - the configuration file which uses hcl as a configuration language.
-- the binary itself which you can get from the releases page.
+- the binary itself which you can get from the [releases page](https://github.com/alash3al/exeq/releases).
 
 #### Config
 ```hcl
