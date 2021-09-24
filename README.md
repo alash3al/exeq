@@ -5,7 +5,7 @@ EXEQ
 
 Features
 ========
-- Simple initutive tiny cli app.
+- Simple intuitive tiny cli app.
 - Modular queue backends (currently it supports redis as backend but we should support more in the future like `sqs`, `kafka`, `postgres`, ...).
 - Powerful configurations thanks to HCL by hashicrop.
 - OpenMetrics `/metrics` endpoint to inspect the queue via promethues.
@@ -102,7 +102,7 @@ macro "example1" {
 ```
 
 #### Exeq Binary
-> exeq is an initutive cli app, you can just write `exeq help` from your shell and go with its help.
+> exeq is an intuitive cli app, you can just write `exeq help` from your shell and go with its help.
 > the binary consists of the following subcommands
 ```shell
    queue:work     start the queue worker(s)
