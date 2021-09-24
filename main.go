@@ -50,6 +50,10 @@ func init() {
 	go (func() {
 		for err := range queueConn.Err() {
 			golog.Error(err)
+
+			if cfg.Logging.SentryDSN != "" {
+				sentry.CaptureException(err)
+			}
 		}
 	})()
 }

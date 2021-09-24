@@ -20,7 +20,7 @@ import (
 func HTTPServer(cfg *config.Config, queueConn queue.Driver) *cli.Command {
 	return &cli.Command{
 		Name:  "serve:http",
-		Usage: "start the http listener",
+		Usage: "start the http server which enables you to enqueue macros and inspect the queue via /metrics endpoint with the help of promethues",
 		Flags: []cli.Flag{
 			&cli.StringFlag{
 				Name:        "addr",
