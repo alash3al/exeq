@@ -10,8 +10,18 @@ import (
 type Driver interface {
 	Open(*config.QueueConfig) (Driver, error)
 	Enqueue(*Job) error
+	List() ([]Job, error)
+	Stats() (Stats, error)
 	Err() <-chan error
 	ListenAndConsume() error
+}
+
+type Stats struct {
+	Pending   int64
+	Running   int64
+	Succeeded int64
+	Failed    int64
+	Retries   int64
 }
 
 var (

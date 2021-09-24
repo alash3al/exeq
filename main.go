@@ -46,14 +46,18 @@ func main() {
 	golog.SetLevel(cfg.LogLevel)
 
 	app := &cli.App{
-		Name:        "exeq",
-		Version:     "1.0.0",
-		Description: "exeq enables you to execute shell commands in a managed scalable queue",
+		Name:                   "exeq",
+		Version:                "1.0.0",
+		Description:            "exeq enables you to execute shell commands in a managed scalable queue",
+		EnableBashCompletion:   true,
+		UseShortOptionHandling: true,
 
 		Commands: []*cli.Command{
 			commands.QueueWork(cfg, queueConn),
 			commands.EnqueueMacro(cfg, queueConn),
 			commands.EnqueueCMD(queueConn),
+			commands.QueueList(queueConn),
+			commands.QueueStats(queueConn),
 		},
 	}
 

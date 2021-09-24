@@ -14,31 +14,36 @@ import (
 
 func EnqueueCMD(q queue.Driver) *cli.Command {
 	return &cli.Command{
-		Name:        "enqueue:cmd",
-		Description: "submit a raw shell command to the queue",
+		Name:      "cmd",
+		Usage:     "submit a raw shell command to the queue",
+		ArgsUsage: "sh -c 'echo hello world'",
 		Flags: []cli.Flag{
 			&cli.StringFlag{
 				Name:    "timeout",
 				Aliases: []string{"t"},
+				Usage:   "for more info look at: https://pkg.go.dev/time#ParseDuration",
 			},
 		},
 		Action: func(ctx *cli.Context) error {
+			if len(ctx.Args().Slice()) < 1 {
+				return fmt.Errorf("please specify a command to enqueue")
+			}
+
 			dur, _ := time.ParseDuration(ctx.String("timeout"))
-			err := q.Enqueue(&queue.Job{
+
+			return q.Enqueue(&queue.Job{
 				ID:          xid.New().String(),
 				Cmd:         ctx.Args().Slice(),
 				MaxExecTime: dur,
 			})
-
-			return err
 		},
 	}
 }
 
 func EnqueueMacro(cfg *config.Config, q queue.Driver) *cli.Command {
 	return &cli.Command{
-		Name:        "enqueue:macro",
-		Description: "submit a raw shell command to the queue",
+		Name:  "macro",
+		Usage: "submit macro to the queue",
 		Flags: []cli.Flag{
 			&cli.StringFlag{
 				Name:     "macro",

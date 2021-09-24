@@ -11,9 +11,13 @@ queue {
 
     workers_count = 5
 
-    poll_duration = "50ms"
+    poll_duration = "1s"
 
     retry_attempts = 3
+
+    history {
+        retention_period = "48h"
+    }
 }
 
 macro "crawl" {
