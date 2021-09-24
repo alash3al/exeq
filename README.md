@@ -1,10 +1,17 @@
-EXEQ (WIP)
-===========
+EXEQ
+======
+> **DOCS STILL IN PROGRESS**
 > Execute shell commands in queues via cli or http interface with modular queue engine.
 
-Why
-===
-> I'm utilizing background jobs heavily in my projects especially crawling projects, let's say we have a scrapy project and we want to make its spiders run on a distributed queue workers without any complex setup, so all what I need is to call `exeq` and pass scrapy commands to it either from a `cli` or its `http` api.
+Features
+========
+- Simple initutive tiny cli app.
+- Modular queue backends (currently it supports redis as backend but we should support more in the future like `sqs`, `kafka`, `postgres`, ...).
+- Powerful configurations thanks to HCL by hashicrop.
+- OpenMetrics `/metrics` endpoint to inspect the queue via promethues.
+- Error reporting via sentry and stdout/stderr logging.
+- Easily create shortcuts for repeated shell commands (we name it Macros).
+- Limit the job execution time.
 
 Components
 ==========
@@ -45,6 +52,3 @@ Components
         - `GET /`
         - `GET /metrics` (a promethues metrics endpoint)
 - You may want to list jobs history `exeq queue:jobs`
-
-Examples
-========
