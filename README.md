@@ -1,8 +1,7 @@
 EXEQ
 ======
 > **DOCS STILL IN PROGRESS**.  
-
-> Execute shell commands in queues via cli or http interface with modular queue engine.
+> Execute shell commands in queues via cli or http interface.
 
 Features
 ========
