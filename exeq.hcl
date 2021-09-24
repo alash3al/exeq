@@ -1,7 +1,15 @@
-log_level = "debug"
+logging {
+    // Available level names are: "disable" "fatal" "error" "warn" "info" "debug"
+    log_level = "debug"
 
-http_server {
+    // Sentry dsn
+    sentry_dsn = ""
+}
+
+http {
     listen = ":1215"
+
+    access_logs = true
 }
 
 queue {
@@ -22,6 +30,7 @@ queue {
 
 macro "crawl" {
     command = "scrapy crawl {{.Args.spider}} {{range $k, $v := .Args}} -a {{$k}}={{$v}} {{end}}"
+    max_execution_time = ""
     mount "file.php" {
         content = ""
     }

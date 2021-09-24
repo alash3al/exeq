@@ -3,6 +3,7 @@ package commands
 import (
 	"fmt"
 	"os"
+	"strconv"
 	"strings"
 	"time"
 
@@ -14,9 +15,22 @@ import (
 
 func QueueWork(cfg *config.Config, q queue.Driver) *cli.Command {
 	return &cli.Command{
-		Name:  "work",
+		Name:  "queue:work",
 		Usage: "start the queue worker(s)",
+		Flags: []cli.Flag{
+			&cli.IntFlag{
+				Name:        "workers",
+				Aliases:     []string{"w"},
+				Usage:       "the workers count, this will override the configuration file value",
+				DefaultText: strconv.Itoa(cfg.Queue.WorkersCount),
+				EnvVars:     []string{"EXEQ_WORKERS_COUNT"},
+			},
+		},
 		Action: func(ctx *cli.Context) error {
+			if ctx.IsSet("workers") {
+				cfg.Queue.WorkersCount = ctx.Int("workers")
+			}
+
 			if err := cfg.SetupMounts(); err != nil {
 				return err
 			}
@@ -28,7 +42,7 @@ func QueueWork(cfg *config.Config, q queue.Driver) *cli.Command {
 
 func QueueList(q queue.Driver) *cli.Command {
 	return &cli.Command{
-		Name:  "ps",
+		Name:  "queue:jobs",
 		Usage: "list the jobs",
 		Action: func(ctx *cli.Context) error {
 			table := tablewriter.NewWriter(os.Stdout)
@@ -81,7 +95,7 @@ func QueueList(q queue.Driver) *cli.Command {
 
 func QueueStats(q queue.Driver) *cli.Command {
 	return &cli.Command{
-		Name:  "stats",
+		Name:  "queue:stats",
 		Usage: "show queue stats",
 		Action: func(ctx *cli.Context) error {
 			table := tablewriter.NewWriter(os.Stdout)

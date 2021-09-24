@@ -14,7 +14,7 @@ import (
 
 func EnqueueCMD(q queue.Driver) *cli.Command {
 	return &cli.Command{
-		Name:      "cmd",
+		Name:      "enqueue:cmd",
 		Usage:     "submit a raw shell command to the queue",
 		ArgsUsage: "sh -c 'echo hello world'",
 		Flags: []cli.Flag{
@@ -29,12 +29,12 @@ func EnqueueCMD(q queue.Driver) *cli.Command {
 				return fmt.Errorf("please specify a command to enqueue")
 			}
 
-			dur, _ := time.ParseDuration(ctx.String("timeout"))
+			maxExecTime, _ := time.ParseDuration(ctx.String("timeout"))
 
 			return q.Enqueue(&queue.Job{
 				ID:          xid.New().String(),
 				Cmd:         ctx.Args().Slice(),
-				MaxExecTime: dur,
+				MaxExecTime: maxExecTime,
 			})
 		},
 	}
@@ -42,7 +42,7 @@ func EnqueueCMD(q queue.Driver) *cli.Command {
 
 func EnqueueMacro(cfg *config.Config, q queue.Driver) *cli.Command {
 	return &cli.Command{
-		Name:  "macro",
+		Name:  "enqueue:macro",
 		Usage: "submit macro to the queue",
 		Flags: []cli.Flag{
 			&cli.StringFlag{
@@ -88,11 +88,12 @@ func EnqueueMacro(cfg *config.Config, q queue.Driver) *cli.Command {
 				),
 			)
 
-			err = q.Enqueue(&queue.Job{
-				Cmd: cmd,
-			})
+			maxExecTime, _ := time.ParseDuration(macro.MaxExecTime)
 
-			return err
+			return q.Enqueue(&queue.Job{
+				Cmd:         cmd,
+				MaxExecTime: maxExecTime,
+			})
 		},
 	}
 }

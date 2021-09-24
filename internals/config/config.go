@@ -9,9 +9,13 @@ import (
 )
 
 type Config struct {
-	LogLevel   string            `hcl:"log_level"`
+	Logging struct {
+		LogLevel  string `hcl:"log_level"`
+		SentryDSN string `hcl:"sentry_dsn"`
+	} `hcl:"logging,block"`
+
 	Queue      *QueueConfig      `hcl:"queue,block"`
-	HTTPServer *HTTPServerConfig `hcl:"http_server,block"`
+	HTTPServer *HTTPServerConfig `hcl:"http,block"`
 	Macros     []*MacroConfig    `hcl:"macro,block"`
 
 	macrosMap map[string]*MacroConfig

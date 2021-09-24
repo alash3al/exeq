@@ -10,14 +10,16 @@ import (
 	"path/filepath"
 	"strings"
 	"text/template"
+	"time"
 
 	"github.com/alash3al/exeq/pkg/utils"
 )
 
 type MacroConfig struct {
-	Name    string `hcl:"name,label"`
-	Command string `hcl:"command"`
-	Mounts  []struct {
+	Name        string `hcl:"name,label"`
+	Command     string `hcl:"command"`
+	MaxExecTime string `hcl:"max_execution_time"`
+	Mounts      []struct {
 		Filename string `hcl:"filename,label"`
 		Content  string `hcl:"content"`
 	} `hcl:"mount,block"`
@@ -36,8 +38,15 @@ func (macro *MacroConfig) ParseAndSplit(ctx map[string]string) ([]string, error)
 	return utils.SplitSpaceDelimitedString(strings.TrimSpace(command)), nil
 }
 
+// TODO rename to validateMacro?
 func (macro *MacroConfig) validateCommand() error {
 	cmdParts := macro.split()
+
+	if macro.MaxExecTime != "" {
+		if _, err := time.ParseDuration(macro.MaxExecTime); err != nil {
+			return fmt.Errorf("unable to parse the max_exec_time value: %s", err.Error())
+		}
+	}
 
 	if len(cmdParts) < 1 {
 		return fmt.Errorf("there is no command (or command is empty) for the macro (%s)", macro.Name)

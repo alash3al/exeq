@@ -1,12 +1,14 @@
 package main
 
 import (
+	"log"
 	"os"
 
 	"github.com/alash3al/exeq/internals/commands"
 	"github.com/alash3al/exeq/internals/config"
 	"github.com/alash3al/exeq/internals/queue"
 	"github.com/alash3al/exeq/pkg/utils"
+	"github.com/getsentry/sentry-go"
 	"github.com/kataras/golog"
 	"github.com/urfave/cli/v2"
 
@@ -35,6 +37,16 @@ func init() {
 		golog.Fatal(err)
 	}
 
+	if cfg.Logging.SentryDSN != "" {
+		if err := sentry.Init(sentry.ClientOptions{
+			// Either set your DSN here or set the SENTRY_DSN environment variable.
+			Dsn:     cfg.Logging.SentryDSN,
+			Release: "exeq",
+		}); err != nil {
+			log.Fatalf("sentry.Init: %s", err)
+		}
+	}
+
 	go (func() {
 		for err := range queueConn.Err() {
 			golog.Error(err)
@@ -43,7 +55,7 @@ func init() {
 }
 
 func main() {
-	golog.SetLevel(cfg.LogLevel)
+	golog.SetLevel(cfg.Logging.LogLevel)
 
 	app := &cli.App{
 		Name:                   "exeq",
@@ -58,6 +70,7 @@ func main() {
 			commands.EnqueueCMD(queueConn),
 			commands.QueueList(queueConn),
 			commands.QueueStats(queueConn),
+			commands.HTTPServer(cfg, queueConn),
 		},
 	}
 
